@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            border: 2px solid #ccc;
+            padding: 50px;
+            border-radius: 10px;
+        }
+       
+        
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .error-icon {
+            display: none;
+            margin-left: 5px;
+            color: red;
+            cursor: pointer;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5%;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+        }
+        .cnt{
+            display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+        }
+        
+        .close {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10%;
+        }
+        
+        .close:hover,
+        .close:focus {
+            background-color: #0056b3;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="margin-bottom: 10%;">Tax Calculator</h1>
+        
+        <form id="taxForm">
+            <div class="form-group">
+                <label for="income">Enter Gross Annual Income(in Lakhs)</label>
+                <input type="number" class="form-control" id="income" min="0" step="0.01">
+                <span class="error-icon" id="incomeError">!</span>
+            </div>
+            <div class="form-group">
+                <label for="extraIncome">Enter Extra Income (in Lakhs)</label>
+                <input type="number" class="form-control" id="extraIncome" min="0" step="0.01">
+                <span class="error-icon" id="extraIncomeError">!</span>
+            </div>
+            <div class="form-group">
+                <label for="deductions"> Enter total applicable Deductions (in Lakhs)</label>
+                <input type="number" class="form-control" id="deductions" min="0" step="0.01">
+                <span class="error-icon" id="deductionsError">!</span>
+            </div>
+            <div class="form-group">
+                <label for="age">Eneter Age Group</label>
+                <select id="age" class="form-control">
+                    <option value="<40">&lt;40</option>
+                    <option value="≥40 & <60">&ge;40 &lt;60</option>
+                    <option value="≥60">&ge;60</option>
+                </select>
+                <span class="error-icon" id="ageError">!</span>
+            </div>
+            <button type="submit" class="btn">Submit</button>
+        </form>
+            
+    </div>
+
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="cnt">
+            
+            <h2>Your overall income will be:</h2>
+            <div id="result"></div>
+            <p style="margin-top:-3%; "><small>after tax deductions</small></p>
+            <button class="close">close</button>
+            </div>
+
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('taxForm');
+            const resultModal = document.getElementById('resultModal');
+            const resultContent = document.getElementById('result');
+            const closeBtn = document.querySelector('.close');
+            
+        
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                clearErrors();
+        
+                const income = parseFloat(document.getElementById('income').value);
+                const extraIncome = parseFloat(document.getElementById('extraIncome').value);
+                const deductions = parseFloat(document.getElementById('deductions').value);
+                const age = document.getElementById('age').value;
+                const inputFields = ['income', 'extraIncome', 'deductions'];
+        
+                inputFields.forEach(field => {
+                    const value = parseFloat(document.getElementById(field).value);
+                    if (isNaN(value)) {
+                        valid = false;
+                        displayError('Please enter valid numbers.', `${field}Error`);
+                    }
+                });
+        
+                if (!valid) {
+                    valid=true;
+                    return;
+                }
+
+        
+                if (age === '') {
+                    displayError('Age field is mandatory.');
+                    return;
+                }
+        
+                let tax = 0;
+                const taxableIncome = income + extraIncome - deductions;
+                if (taxableIncome > 8) {
+                    switch (age) {
+                        case '<40':
+                            tax = 0.3 * (taxableIncome - 8);
+                            break;
+                        case '≥40 & <60':
+                            tax = 0.4 * (taxableIncome - 8);
+                            break;
+                        case '≥60':
+                            tax = 0.1 * (taxableIncome - 8);
+                            break;
+                    }
+                }
+        
+                resultContent.innerHTML = `<h3>${income+extraIncome-deductions-tax.toFixed(2)} Lakhs </h3> `;
+                resultModal.style.display = 'block';
+            });
+        
+            closeBtn.onclick = function () {
+                resultModal.style.display = 'none';
+            };
+        
+            window.onclick = function (event) {
+                if (event.target === resultModal) {
+                    resultModal.style.display = 'none';
+                }
+            };
+        
+            function displayError(message, fieldId) {
+                const errorIcon = document.getElementById(fieldId);
+                errorIcon.style.display = 'inline-block';
+                errorIcon.setAttribute('title', message); 
+            }
+        
+            function clearErrors() {
+                const errorIcons = document.querySelectorAll('.error-icon');
+                errorIcons.forEach(icon => {
+                    icon.style.display = 'none';
+                    icon.removeAttribute('title');
+                });
+            }
+        });
+        </script>
+</body>
+</html>
+
